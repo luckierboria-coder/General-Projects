@@ -1,0 +1,15 @@
+# Local user archives and credentials must never be committed
+chat_archives/
+**/chat_archives/
+*.exe
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+build/
+dist/
+release/
+*.spec
+*.log
+.env
+.env.*
