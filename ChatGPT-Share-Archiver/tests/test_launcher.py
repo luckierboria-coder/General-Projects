@@ -17,6 +17,7 @@ class LauncherEnvironmentTests(unittest.TestCase):
              patch("launch_ui.local_proxy", return_value=None), \
              patch("launch_ui.socket.socket"), \
              patch("launch_ui.webbrowser.open"), \
+             patch("launch_ui.print", create=True), \
              patch("launch_ui.subprocess.Popen") as popen:
             launch_ui.main()
             args, kwargs = popen.call_args
@@ -31,6 +32,7 @@ class LauncherEnvironmentTests(unittest.TestCase):
              patch("launch_ui.local_proxy", return_value=None), \
              patch("launch_ui.socket.socket"), \
              patch("launch_ui.webbrowser.open"), \
+             patch("launch_ui.print", create=True), \
              patch("launch_ui.subprocess.Popen") as popen:
             launch_ui.main()
             args, kwargs = popen.call_args
