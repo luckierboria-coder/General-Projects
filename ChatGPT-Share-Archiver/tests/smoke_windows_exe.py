@@ -4,6 +4,7 @@ Does not require Internet access, private ChatGPT data, or a browser session.
 The workflow is responsible for stopping the server after this test.
 """
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -29,15 +30,17 @@ def main():
         raise RuntimeError(f"Executable missing: {EXE}")
     opener = build_opener(ProxyHandler({}))
     print("Launching PyInstaller onefile EXE", flush=True)
-    with subprocess.Popen([str(EXE)], cwd=EXE.parent, stdout=subprocess.DEVNULL,
-                          stderr=subprocess.DEVNULL) as launcher:
+    with subprocess.Popen([str(EXE)], cwd=EXE.parent, env={**os.environ, "CHATGPT_ARCHIVER_NO_BROWSER": "1"},
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) as launcher:
         try:
             launcher.wait(timeout=60)
         except subprocess.TimeoutExpired as exc:
             launcher.kill()
             raise RuntimeError("Launcher did not exit; cannot verify independent server") from exc
         if launcher.returncode:
-            raise RuntimeError(f"EXE launcher returned {launcher.returncode}")
+            diagnostic = EXE.with_name("archiver-startup-error.txt")
+            detail = diagnostic.read_text(encoding="utf-8") if diagnostic.exists() else "no diagnostic"
+            raise RuntimeError(f"EXE launcher returned {launcher.returncode}: {detail}")
     # The launcher is now gone. Its own _MEI folder should be cleaned up,
     # but the detached server must still own a separate extraction directory.
     time.sleep(4)

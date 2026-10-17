@@ -80,8 +80,12 @@ def main():
             time.sleep(0.2)
         else:
             raise RuntimeError("界面未能启动。请确认 Chrome 或 Edge 可用，并检查端口 8791。")
-    webbrowser.open(URL)
-    print("聊天记录界面已打开：" + URL)
+    # Headless CI can validate the real EXE without opening an interactive browser.
+    # End-user behavior is unchanged: by default the browser still opens.
+    if os.environ.get("CHATGPT_ARCHIVER_NO_BROWSER") != "1":
+        webbrowser.open(URL)
+    if sys.stdout is not None:
+        print("聊天记录界面已打开：" + URL)
 
 
 if __name__ == "__main__":

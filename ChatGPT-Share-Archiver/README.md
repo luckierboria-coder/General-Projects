@@ -19,7 +19,7 @@ Codex 页面包含的用户消息、助手回复、进度/推理摘要（若公�
 
 旧版 `--onefile` EXE 运行时，启动器与长期运行的 `--serve` 后台进程可能共享 PyInstaller 临时解包目录；启动器退出会删除该目录，后台服务随后出现 `读取失败：[Errno 2] No such file or directory: ..._MEI.../base_library.zip`。v1.1.1 在冻结模式启动后台进程时设置 `PYINSTALLER_RESET_ENVIRONMENT=1`，令服务作为**独立的 PyInstaller 实例**重新解包；源码运行时仍继承原环境。
 
-升级前请退出旧版后台进程及 EXE，再解压新包运行；**不需删除 `chat_archives` 或清理 Windows Temp**。勿把旧 EXE 与新源码混用。此补丁不改变 ChatGPT/Codex 数据解析逻辑。GitHub Actions 添加了实际 Windows EXE 后台服务冒烟验证，避免只验证编译成功。
+升级前请退出旧版后台进程及 EXE，再解压新包运行；**不需删除 `chat_archives` 或清理 Windows Temp**。勿把旧 EXE 与新源码混用。此补丁不改变 ChatGPT/Codex 数据解析逻辑。GitHub Actions 添加了 Windows EXE 后台服务冒烟验证（CI 设置 `CHATGPT_ARCHIVER_NO_BROWSER=1`，避免非交互 Runner 启动浏览器；用户正常运行不受影响），避免只验证编译成功。
 
 
 ## GitHub Actions 云编译
