@@ -9,13 +9,13 @@
 | 项目 | ChatGPT Share Archiver（ChatGPT 聊天记录查看器） |
 | 仓库 | `luckierboria-coder/General-Projects` |
 | 子目录 | `ChatGPT-Share-Archiver/` |
-| 当前代码版本 | v1.1（引入 Codex 共享快照支持） |
+| 当前代码版本 | v1.1.1（Codex 快照 + PyInstaller onefile 后台进程独立启动修复） |
 | 用途 | 本地查看**公开分享**的 ChatGPT 对话 / Codex 任务记录，并保存为可检索的 XML |
 | 实现 | Python 3 标准库、原生 HTML/CSS/JavaScript、Chrome/Edge（传统分享）、PyInstaller（Windows EXE） |
 | 用户界面 | `http://127.0.0.1:8791/`，只在回环地址开放 |
 | 持久化 | `chat_archives/*.xml`，用户本地保存；**不能提交到公共仓库** |
 | 许可证 | 仓库根目录 `../LICENSE`（MIT）；非 OpenAI 官方产品 |
-| 主要状态 | v1.1 的离线回归测试和一次 Windows GitHub Actions 构建通过；真实 Codex 快照的在线端到端验证**仍待补足** |
+| 主要状态 | v1.1.1 增加独立后台进程补丁与 Windows EXE 运行时冒烟测试；线上 Codex 快照端到端验证**仍待补足** |
 
 **不支持**直接读取需要登录的私人对话 `/c/...`、突破访问权限、恢复快照中不存在的内容、自动下载附件二进制或以此代替 ChatGPT 官方数据导出。
 
@@ -71,7 +71,7 @@ ChatGPT-Share-Archiver/
 ### 4.1 图形界面模式
 
 1. 用户启动 `ChatGPT-Share-Archiver.exe`；`app_entry.py` → `launch_ui.py`。
-2. `launch_ui.py` 检查 `/health` 或在 `127.0.0.1:8791` 启动 `--serve` 子进程，打开默认浏览器。
+2. `launch_ui.py` 检查 `/health` 或在 `127.0.0.1:8791` 启动 `--serve` 子进程，打开默认浏览器。冻结为 PyInstaller onefile EXE 时，`server_environment()` 将 `PYINSTALLER_RESET_ENVIRONMENT=1` 传给后台子进程，确保它独立解包且不依赖启动器的 `_MEI` 临时目录。
 3. 前端 `POST /api/load`（携带 `X-Local-Token`）提交分享 URL。
 4. `AppHandler.load_chat()` 通过 `validated_url()` 分类，走 **Codex JSON** 或 **传统分享 HTML** 路径。
 5. 两路都归并成 `ElementTree` 的 `<conversation>` / `<message>`；生成供 UI 显示的简化消息数组。
@@ -166,6 +166,7 @@ python scripts/export_shares.py --json-file sample.json --source-url https://cha
 | `Codex 快照缺少 turns/items` / 不支持 `version` | Codex 数据格式 | 使用去标识化的真实结构样本，扩展解析器并新增测试；不可静默忽略 |
 | 导出提示名称为空、同名 XML | 文件存储 | 项目名是文件名前缀；非法 Windows 文件名字符被替换；同名档案生成序号 |
 | 旧版本仍然显示原报错 | EXE/端口缓存 | 确认旧进程退出，检查 `/health` 的 `app_root` 是否指向新版目录 |
+| `读取失败：[Errno 2] ..._MEI.../base_library.zip` | PyInstaller onefile 后台进程解包目录被提前清理 | v1.1.1 起检查 `launch_ui.server_environment()` 与 `subprocess.Popen(env=...)`；冻结后的 `--serve` 必须使用 `PYINSTALLER_RESET_ENVIRONMENT=1` 作为独立实例，不要靠手动删除 Temp 修复 |
 
 **避免的误判**：`browser exit 0` 并不是“浏览器崩溃”；它可能是正常退出却没有标准输出。传统链接解析失败与 Codex URL 校验失败是不同故障；必须分别排查。
 
@@ -181,7 +182,8 @@ python scripts/export_shares.py --json-file sample.json --source-url https://cha
 ## 10. 当前限制与下一步工作
 
 截至 **2026-10-17** 可确认：
-- v1.1 已推入 GitHub；离线 6 项回归测试通过；Windows Actions 已成功创建 EXE artifact。
+- v1.1 已推入 GitHub；原有 6 项离线回归测试通过；Windows Actions 已成功创建 EXE artifact。
+- v1.1.1 针对 `base_library.zip` 失踪增加了冻结 EXE 的独立后台实例修复、launcher 回归测试与 Windows 二进制冒烟测试。此项的 GitHub Actions 结果以最新构建记录为准。
 - 尚未以真实 Codex 在线快照完成端到端验证；公开内部 JSON API 和其 `version=1` 格式可能改变。
 - 传统 ChatGPT 分享 HTML 解析依赖网站内嵌 React Router payload，网站更新会破坏它。
 - 原始快照的 JSON 虽能保留未知项目，但 UI 只显示被识别的用户/助手/进度文本；文件变更、工具输出及多模态附件不保证可视化。

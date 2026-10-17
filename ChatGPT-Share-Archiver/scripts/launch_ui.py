@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -43,6 +44,18 @@ def local_proxy():
     return None
 
 
+def server_environment():
+    """Onefile background server must unpack independently of short-lived launcher.
+
+    PyInstaller >= 6.9 treats a subprocess of sys.executable as a worker by
+    default. Reusing the launcher's _MEI directory breaks when the launcher
+    exits and its temporary files (including base_library.zip) are deleted.
+    """
+    if getattr(sys, "frozen", False):
+        return {**os.environ, "PYINSTALLER_RESET_ENVIRONMENT": "1"}
+    return None
+
+
 def main():
     if not is_our_server():
         try:
@@ -60,7 +73,7 @@ def main():
         flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) | getattr(subprocess, "DETACHED_PROCESS", 0)
         subprocess.Popen(command, cwd=APP_ROOT, stdin=subprocess.DEVNULL,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                         creationflags=flags, close_fds=True)
+                         creationflags=flags, close_fds=True, env=server_environment())
         for _ in range(150):
             if is_our_server():
                 break

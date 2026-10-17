@@ -1,4 +1,4 @@
-# ChatGPT Share Archiver v1.1 — 支持 Codex 共享快照
+# ChatGPT Share Archiver v1.1.1 — 支持 Codex 共享快照及独立后台进程修复
 
 本项目保留原 ChatGPT 分享阅读/导出功能，并增加 **Codex 共享快照**（`https://chatgpt.com/s/cx_...`）支持。它不是官方 OpenAI 软件。
 
@@ -14,6 +14,13 @@ Codex 页面包含的用户消息、助手回复、进度/推理摘要（若公�
 请使用 GitHub Actions 构建后下载的 `ChatGPT_Share_Archiver_Windows.zip`，解压后双击新的 `ChatGPT-Share-Archiver.exe`。**不要继续运行旧 EXE**，旧 EXE 不会自动读取外部新 Python 源码。已有 `chat_archives` 保留，并复制回新软件目录即可；**不要覆盖或删除原 XML**。旧程序可能仍在运行：升级前在任务管理器结束旧 `ChatGPT-Share-Archiver.exe`，确保 8791 端口可被新程序使用。
 
 本地 UI 仍位于 `http://127.0.0.1:8791`。若健康检查返回 `ok: true`，只是服务运行正常，不代表网络抓取一定成功。
+
+### v1.1.1 修复：找不到 `_MEI.../base_library.zip`
+
+旧版 `--onefile` EXE 运行时，启动器与长期运行的 `--serve` 后台进程可能共享 PyInstaller 临时解包目录；启动器退出会删除该目录，后台服务随后出现 `读取失败：[Errno 2] No such file or directory: ..._MEI.../base_library.zip`。v1.1.1 在冻结模式启动后台进程时设置 `PYINSTALLER_RESET_ENVIRONMENT=1`，令服务作为**独立的 PyInstaller 实例**重新解包；源码运行时仍继承原环境。
+
+升级前请退出旧版后台进程及 EXE，再解压新包运行；**不需删除 `chat_archives` 或清理 Windows Temp**。勿把旧 EXE 与新源码混用。此补丁不改变 ChatGPT/Codex 数据解析逻辑。GitHub Actions 添加了实际 Windows EXE 后台服务冒烟验证，避免只验证编译成功。
+
 
 ## GitHub Actions 云编译
 

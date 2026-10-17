@@ -32,6 +32,15 @@ jobs:
         shell: pwsh
         run: |
           pyinstaller --noconfirm --clean --onefile --windowed --name ChatGPT-Share-Archiver --paths scripts --add-data 'assets/chat-ui.html;assets' scripts/app_entry.py
+      - name: Smoke test packaged Windows launcher
+        shell: pwsh
+        run: python tests/smoke_windows_exe.py
+      - name: Stop smoke-test background server
+        if: always()
+        shell: pwsh
+        run: |
+          Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 8791 -State Listen -ErrorAction SilentlyContinue |
+            ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
       - name: Package application
         shell: pwsh
         run: |
