@@ -84,8 +84,10 @@ def main():
     # End-user behavior is unchanged: by default the browser still opens.
     if os.environ.get("CHATGPT_ARCHIVER_NO_BROWSER") != "1":
         webbrowser.open(URL)
-    if sys.stdout is not None:
-        print("聊天记录界面已打开：" + URL)
+    # Windowed EXEs have no reliable UTF-8 console; never let a status print
+    # turn a successful GUI launch into an encoding error on Windows.
+    if not getattr(sys, "frozen", False) and sys.stdout is not None:
+        print("Chat archive UI: " + URL)
 
 
 if __name__ == "__main__":
