@@ -1,4 +1,4 @@
-# ChatGPT Share Archiver v1.1.1 — 支持 Codex 共享快照及独立后台进程修复
+# ChatGPT Share Archiver v1.1.2 — Windows 分享页抓取修复
 
 本项目保留原 ChatGPT 分享阅读/导出功能，并增加 **Codex 共享快照**（`https://chatgpt.com/s/cx_...`）支持。它不是官方 OpenAI 软件。
 
@@ -21,6 +21,12 @@ Codex 页面包含的用户消息、助手回复、进度/推理摘要（若公�
 
 升级前请退出旧版后台进程及 EXE，再解压新包运行；**不需删除 `chat_archives` 或清理 Windows Temp**。勿把旧 EXE 与新源码混用。此补丁不改变 ChatGPT/Codex 数据解析逻辑。GitHub Actions 添加了 Windows EXE 后台服务冒烟验证（CI 设置 `CHATGPT_ARCHIVER_NO_BROWSER=1`，避免非交互 Runner 启动浏览器；用户正常运行不受影响），避免只验证编译成功。
 
+
+### v1.1.2 修复：浏览器退出码 0 却没有返回 HTML
+
+普通的 `/share/<UUID>` 链接优先通过 HTTPS 直接获取包含 React Router 共享会话数据的公开 HTML，验证分享 ID 与完整载荷后才解析。这样可避免部分 Windows Chrome/Edge 使用 `--dump-dom` 时退出码为 0、但 stdout 为空的故障，也不必为了正常的公开分享页启动无头浏览器。如果直接请求没有得到可识别的完整会话载荷，会回退至隔离的 Chrome/Edge 无头模式；若第一次没有输出，则用更简单的启动参数重试一次，并在失败时输出诊断信息。支持被分割为多个 enqueue 片段的 React Router 载荷。
+
+**注意：** 自动化测试覆盖直接提取、分片解析、空输出重试和 Windows EXE 启动；实际用户网络的代理、风控、登录权限与网页格式仍可能影响抓取。只支持公开或有权限查看的共享链接，不使用登录凭证，不绕过访问控制。
 
 ## GitHub Actions 云编译
 

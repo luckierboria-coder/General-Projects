@@ -232,29 +232,88 @@ def find_browser(explicit):
     raise FileNotFoundError("Chrome/Chromium/Edge not found; pass --browser PATH")
 
 
+def _fetch_public_share_html(url, proxy, timeout):
+    """Prefer the public page's server-rendered conversation data.
+
+    ChatGPT share pages embed the full conversation in a React Router stream.
+    Reading that HTML directly avoids headless Chrome's intermittent silent
+    exit (code 0 with no --dump-dom output) on some Windows installations.
+    A valid payload for the requested share ID is required before accepting
+    the response; login pages, challenges and partial HTML fall back to Chrome.
+    """
+    canonical, share_id = validated_url(url)
+    proxies = {"https": proxy, "http": proxy} if proxy else None
+    opener = build_opener(ProxyHandler(proxies))
+    request = Request(canonical, headers={
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+    })
+    try:
+        with opener.open(request, timeout=min(timeout, 30)) as response:
+            final = urlparse(response.url)
+            if final.scheme != "https" or final.hostname != "chatgpt.com" or final.path.rstrip("/") != f"/share/{share_id}":
+                return None
+            if "text/html" not in response.headers.get("Content-Type", "").lower():
+                return None
+            html_bytes = response.read(MAX_SNAPSHOT_BYTES + 1)
+    except (HTTPError, URLError, TimeoutError, OSError):
+        return None
+    if len(html_bytes) > MAX_SNAPSHOT_BYTES:
+        return None
+    html = html_bytes.decode("utf-8-sig", errors="replace")
+    try:
+        view, route, _, _ = embedded_share_data(html)
+        if view.scalar(route["sharedConversationId"]) == share_id:
+            return html
+    except (RuntimeError, KeyError, IndexError, TypeError, ValueError):
+        pass
+    return None
+
+
 def fetch_rendered(url, browser, proxy, timeout, virtual_time):
-    # Chrome/Edge Crashpad may still hold CrashpadMetrics-active.pma open on Windows
-    # after the headless browser exits. A locked diagnostics file should not
-    # turn an otherwise successful chat export into a WinError 5.
-    with tempfile.TemporaryDirectory(prefix="chatgpt-share-", ignore_cleanup_errors=True) as profile:
-        command = [
-            browser, "--headless=new", "--disable-gpu", "--no-first-run",
-            "--disable-extensions", "--disable-sync", "--disable-component-update",
-            f"--user-data-dir={profile}", f"--virtual-time-budget={virtual_time}",
-            "--dump-dom",
-        ]
-        if proxy:
-            command.append(f"--proxy-server={proxy}")
-        command.append(url)
-        flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-        result = subprocess.run(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            timeout=timeout, creationflags=flags, check=False,
-        )
-        if result.returncode or not result.stdout:
-            error = result.stderr.decode("utf-8", errors="replace")[-600:].strip()
-            raise RuntimeError(f"Chrome/Edge 未返回页面 HTML（退出码 {result.returncode}，错误输出：{error or '空'}）。请检查浏览器无头模式、代理和访问限制")
-        return result.stdout.decode("utf-8", errors="strict")
+    direct = _fetch_public_share_html(url, proxy, timeout)
+    if direct is not None:
+        return direct
+
+    browser = find_browser(browser)
+    diagnostics = []
+    # The simpler retry avoids --virtual-time-budget and changes the
+    # headless switch, which can matter for certain Chrome/Edge versions.
+    for mode, settle in (("--headless=new", virtual_time), ("--headless", None)):
+        # Chrome/Edge Crashpad can keep profile files locked after process
+        # exit. Do not let cleanup of an ephemeral diagnostics file mask
+        # the actual scrape result.
+        with tempfile.TemporaryDirectory(prefix="chatgpt-share-", ignore_cleanup_errors=True) as profile:
+            command = [
+                browser, mode, "--disable-gpu", "--no-first-run",
+                "--no-default-browser-check", "--disable-extensions",
+                "--disable-sync", "--disable-component-update",
+                f"--user-data-dir={profile}", "--dump-dom",
+            ]
+            if settle is not None:
+                command.append(f"--virtual-time-budget={settle}")
+            if proxy:
+                command.append(f"--proxy-server={proxy}")
+            command.append(url)
+            flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+            try:
+                result = subprocess.run(
+                    command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=timeout, creationflags=flags, check=False,
+                )
+            except subprocess.TimeoutExpired:
+                diagnostics.append(f"{mode}: 超时 {timeout}s")
+                continue
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.decode("utf-8", errors="replace")
+            error = result.stderr.decode("utf-8", errors="replace")[-300:].strip()
+            diagnostics.append(f"{mode}: 退出码 {result.returncode}，HTML 0 字节，错误输出：{error or '空'}")
+    raise RuntimeError(
+        "未能读取分享页：直接请求未获得完整聊天数据，Chrome/Edge 也未输出 HTML。"
+        "请确认该分享链接可以在本机浏览器中公开打开，并检查系统代理或浏览器安全策略。"
+        "浏览器诊断：" + "；".join(diagnostics)
+    )
 
 
 class ShareParser(HTMLParser):
@@ -409,9 +468,17 @@ class RefView:
 
 
 def embedded_share_data(html):
+    chunks = []
     for match in STREAM_CHUNK.finditer(html):
         try:
-            values = json.loads(json.loads(match.group(1)))
+            chunks.append(json.loads(match.group(1)))
+        except (ValueError, TypeError, json.JSONDecodeError):
+            continue
+    # Accept both one complete enqueue chunk and a payload split across
+    # multiple chunks; don't mistake incomplete chunks for missing content.
+    for chunk in chunks + (["".join(chunks)] if len(chunks) > 1 else []):
+        try:
+            values = json.loads(chunk)
             if not isinstance(values, list):
                 continue
             view = RefView(values)
@@ -551,7 +618,7 @@ def main():
         args.output = local_dir / f"chatgpt-share-{stamp}.xml"
     if args.output.exists():
         ap.error(f"output exists; choose a new path to preserve the earlier archive: {args.output}")
-    browser = find_browser(args.browser) if any(not is_codex_share(validated_url(url)[0]) for url in args.urls if url.startswith("https://")) else None
+    browser = args.browser  # Browser is resolved only when HTTP-first retrieval needs a fallback.
     root = ET.Element("chatgpt_share_archive", {
         "schema_version": "1", "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
         "scope": "public_share_user_visible_messages",
