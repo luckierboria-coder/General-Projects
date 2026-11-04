@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export full user-visible ChatGPT share histories to a local XML archive."""
+"""Export public ChatGPT share histories to offline HTML (or legacy XML)."""
 
 import argparse
 from datetime import datetime, timezone
@@ -603,7 +603,8 @@ def main():
     ap.add_argument("--html-file", action="append", type=Path, default=[], help="Saved share-page HTML for offline extraction; repeat for multiple pages")
     ap.add_argument("--json-file", action="append", type=Path, default=[], help="Saved Codex snapshot JSON; must contain source_url or specify --source-url")
     ap.add_argument("--source-url", help="Public Codex /s/cx_... URL matching --json-file")
-    ap.add_argument("--output", type=Path, help="Destination XML file; defaults to a timestamped local chat_archives file")
+    ap.add_argument("--output", type=Path, help="Destination HTML file; defaults to a timestamped local chat_archives file")
+    ap.add_argument("--format", choices=("html", "xml", "json"), default="html", help="Output format, default html")
     ap.add_argument("--allow-dom-fallback", action="store_true", help="Export visibly rendered messages when the full payload is absent; marks the result partial")
     ap.add_argument("--browser", help="Chrome/Chromium/Edge executable")
     ap.add_argument("--proxy", help="Optional browser proxy URL")
@@ -615,7 +616,8 @@ def main():
     if args.output is None:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         local_dir = Path(__file__).resolve().parents[1] / "chat_archives"
-        args.output = local_dir / f"chatgpt-share-{stamp}.xml"
+        extension = "html" if args.format == "html" else args.format
+        args.output = local_dir / f"chatgpt-share-{stamp}.{extension}"
     if args.output.exists():
         ap.error(f"output exists; choose a new path to preserve the earlier archive: {args.output}")
     browser = args.browser  # Browser is resolved only when HTTP-first retrieval needs a fallback.
@@ -624,6 +626,7 @@ def main():
         "scope": "public_share_user_visible_messages",
     })
     failures = 0
+    raw_sources = []
     sources = [(url, None, None) for url in args.urls] + [(None, file, None) for file in args.html_file] + [(None, None, file) for file in args.json_file]
     for supplied, file, json_file in sources:
         try:
@@ -634,11 +637,14 @@ def main():
                 if not codex_url:
                     raise ValueError("--json-file 需要 --source-url 参数指定原始 /s/cx_... 链接")
                 count, missing, nodes, rendered = add_codex_conversation(root, codex_url, payload)
+                raw_sources.append({"url": codex_url, "kind": "codex_snapshot", "data": payload})
                 print(f"OK {codex_url}: {count} visible messages, {nodes} snapshot items; original JSON preserved", file=sys.stderr)
                 continue
             html = fetch_rendered(url, browser, args.proxy, args.timeout, args.virtual_time) if url else file.read_text(encoding="utf-8")
             try:
                 count, missing, nodes, rendered = add_payload_conversation(root, url, html)
+                view, _, _, _ = embedded_share_data(html)
+                raw_sources.append({"url": url, "kind": "chatgpt_react_router_indexed", "data": view.values})
                 print(f"OK {url or file}: {count} messages from {nodes} payload nodes (DOM displayed {rendered}); {missing} unembedded attachments", file=sys.stderr)
             except RuntimeError:
                 if not args.allow_dom_fallback:
@@ -656,9 +662,25 @@ def main():
             ET.SubElement(root, "failure", {"source_url": source, "reason": str(exc)})
             print(f"FAIL {source}: {exc}", file=sys.stderr)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    tree = ET.ElementTree(root)
-    ET.indent(tree, space="  ")
-    tree.write(args.output, encoding="utf-8", xml_declaration=True)
+    if args.format == "xml":
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="  ")
+        tree.write(args.output, encoding="utf-8", xml_declaration=True)
+    else:
+        from html_export import build_html, backup_json
+        json_path = args.output if args.format == "json" else args.output.with_suffix(".json")
+        if json_path.exists() and json_path != args.output:
+            raise FileExistsError(f"JSON backup already exists; refusing to overwrite: {json_path}")
+        data = backup_json(root, raw_sources)
+        if args.format == "json":
+            args.output.write_text(data, encoding="utf-8")
+        else:
+            if root.findall("conversation"):
+                args.output.write_text(build_html(root), encoding="utf-8")
+            else:
+                print("No conversations parsed; wrote failure details to JSON", file=sys.stderr)
+            json_path.write_text(data, encoding="utf-8")
+            print(f"JSON backup: {json_path}")
     print(f"Wrote {args.output} ({len(root.findall('conversation'))} conversations; {failures} failures)")
     return 1 if failures else 0
 

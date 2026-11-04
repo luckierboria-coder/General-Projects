@@ -1,45 +1,36 @@
-# ChatGPT Share Archiver v1.1.2 — Windows 分享页抓取修复
+# ChatGPT Share Archiver v2.0 — HTML 优先，高保真离线归档
 
-本项目保留原 ChatGPT 分享阅读/导出功能，并增加 **Codex 共享快照**（`https://chatgpt.com/s/cx_...`）支持。它不是官方 OpenAI 软件。
+本项目支持普通 ChatGPT 公开分享链接和 Codex 共享快照。**默认导出可双击离线打开的 HTML，而不是 XML**；同时将可获取的源数据保存为同名 JSON 文件。软件不属于 OpenAI 官方产品。
 
-## 支持的链接
+## 默认导出格式
 
-- `https://chatgpt.com/share/<UUID>`：沿用原来的 Chrome/Edge 分享页抓取、React Router payload 解析。
-- `https://chatgpt.com/s/cx_<32个十六进制字符>`：直接请求公开共享快照 JSON API，不启动无头浏览器。
+- 项目名-聊天标题.html：单文件 HTML，内置 CSS，不依赖在线脚本；展示聊天角色、消息顺序、Markdown 标题、粗体、列表、引用、代码块、表格与可转换的 LaTeX 数学公式；每条消息均可展开原始 Markdown。
+- 项目名-聊天标题.json：结构化备份，保留未渲染的原始会话字段。Codex 保存接口 JSON 快照；普通 ChatGPT 分享保存 React Router 索引数据（只限公开页面实际返回的内容）。
+- 程序将 HTML 和 JSON 同时保存到 chat_archives；浏览器自动下载 HTML，并提供 JSON 备份下载链接。原有 XML 文件不会被覆盖或删除。
 
-Codex 页面包含的用户消息、助手回复、进度/推理摘要（若公开快照包含）可显示在阅读界面；**原始快照 JSON 以 `<codex_snapshot_json>` 存放在 XML 的 `<conversation>` 下**，其他事件项、差异、资源信息不被丢弃。快照本身没有的附件二进制、工具调用原始结果和未公开信息，软件无法恢复。
+## 支持内容与限制
 
-## Windows 用户
+- 支持 https://chatgpt.com/share/UUID 和 https://chatgpt.com/s/cx_... 公开分享。
+- 文本尽可能保持原有内容和次序。源数据没有提供的图片原文件、附件二进制、未公开的工具调用结果无法恢复；已有资源引用和非文本记录尽量保留。
+- HTML 离线可以查看文本、排版、代码、表格与 MathML 公式；网络图片可能仍需要联网。不会在导出 HTML 中加载第三方 JavaScript。
+- 页面结构变化、网络代理、分享权限或接口风控均可能导致抓取失败；请保留诊断信息用于后续适配。
 
-请使用 GitHub Actions 构建后下载的 `ChatGPT_Share_Archiver_Windows.zip`，解压后双击新的 `ChatGPT-Share-Archiver.exe`。**不要继续运行旧 EXE**，旧 EXE 不会自动读取外部新 Python 源码。已有 `chat_archives` 保留，并复制回新软件目录即可；**不要覆盖或删除原 XML**。旧程序可能仍在运行：升级前在任务管理器结束旧 `ChatGPT-Share-Archiver.exe`，确保 8791 端口可被新程序使用。
+## Windows 使用
 
-本地 UI 仍位于 `http://127.0.0.1:8791`。若健康检查返回 `ok: true`，只是服务运行正常，不代表网络抓取一定成功。
+在 GitHub Actions 的 ChatGPT Share Archiver - Windows EXE 构建中下载 ChatGPT-Share-Archiver-Windows，解压后双击 ChatGPT-Share-Archiver.exe。此前的 EXE 不会读取新的源码改动，请停止旧后台进程后再运行新 EXE。本地 UI 地址为 http://127.0.0.1:8791。
 
-### v1.1.1 修复：找不到 `_MEI.../base_library.zip`
+## 命令行
 
-旧版 `--onefile` EXE 运行时，启动器与长期运行的 `--serve` 后台进程可能共享 PyInstaller 临时解包目录；启动器退出会删除该目录，后台服务随后出现 `读取失败：[Errno 2] No such file or directory: ..._MEI.../base_library.zip`。v1.1.1 在冻结模式启动后台进程时设置 `PYINSTALLER_RESET_ENVIRONMENT=1`，令服务作为**独立的 PyInstaller 实例**重新解包；源码运行时仍继承原环境。
+python scripts/export_shares.py https://chatgpt.com/share/01234567-89ab-cdef-0123-456789abcdef
 
-升级前请退出旧版后台进程及 EXE，再解压新包运行；**不需删除 `chat_archives` 或清理 Windows Temp**。勿把旧 EXE 与新源码混用。此补丁不改变 ChatGPT/Codex 数据解析逻辑。GitHub Actions 添加了 Windows EXE 后台服务冒烟验证（CI 设置 `CHATGPT_ARCHIVER_NO_BROWSER=1`，避免非交互 Runner 启动浏览器；用户正常运行不受影响），避免只验证编译成功。
+默认生成 HTML 与 JSON。若需要旧 XML 兼容格式，可使用 --format xml。使用 --format json 则仅保存 JSON 结构备份。
 
+## 历史修复
 
-### v1.1.2 修复：浏览器退出码 0 却没有返回 HTML
+- v1.1.2：公开分享页直接 HTTPS 获取及 Chrome/Edge 空 HTML 重试。
+- v1.1.1：PyInstaller 后台子进程独立解包，避免 base_library.zip 被提前删除。
+- 2026-11-04 Crashpad 修复：忽略浏览器临时配置文件清理时的 WinError 5。
 
-普通的 `/share/<UUID>` 链接优先通过 HTTPS 直接获取包含 React Router 共享会话数据的公开 HTML，验证分享 ID 与完整载荷后才解析。这样可避免部分 Windows Chrome/Edge 使用 `--dump-dom` 时退出码为 0、但 stdout 为空的故障，也不必为了正常的公开分享页启动无头浏览器。如果直接请求没有得到可识别的完整会话载荷，会回退至隔离的 Chrome/Edge 无头模式；若第一次没有输出，则用更简单的启动参数重试一次，并在失败时输出诊断信息。支持被分割为多个 enqueue 片段的 React Router 载荷。
+## 构建与测试
 
-**注意：** 自动化测试覆盖直接提取、分片解析、空输出重试和 Windows EXE 启动；实际用户网络的代理、风控、登录权限与网页格式仍可能影响抓取。只支持公开或有权限查看的共享链接，不使用登录凭证，不绕过访问控制。
-
-## GitHub Actions 云编译
-
-源码位于 `General-Projects/ChatGPT-Share-Archiver/`，Windows 构建工作流在仓库根目录 `.github/workflows/build-chatgpt-share-archiver.yml`。在 GitHub Actions 页面运行 **Windows EXE build** 工作流，下载 Artifacts 中的 `ChatGPT-Share-Archiver-Windows`；Windows runner 会自动运行离线回归测试并使用 PyInstaller 打包 EXE。本地无需安装 Python 或编译器。
-
-## 源码命令行
-
-```text
-python scripts/export_shares.py https://chatgpt.com/s/cx_0123456789abcdef0123456789abcdef
-python scripts/export_shares.py --json-file sample.json --source-url https://chatgpt.com/s/cx_0123456789abcdef0123456789abcdef
-python -m unittest discover -s tests -v
-```
-
-## 边界与限制
-
-公开快照接口 `/backend-api/wham/shared_threads/...` 是未正式承诺稳定性的内部接口，未来接口或 v1 数据结构变化需要继续适配。当前环境无法在线访问 ChatGPT API，因此 v1 解析器已做离线结构回归测试，**但还没有用实际线上快照完成端到端验证**。如果线上解析失败，请提供 HTTP 状态或去标识化的快照 JSON 结构，以便针对真实结构补丁修正。不会绕过访问权限。
+运行 python -m unittest discover -s tests -v。GitHub Actions 安装 HTML 渲染依赖、执行离线回归测试、构建 PyInstaller Windows EXE，并做启动冒烟测试；真实联网分享读取仍需要在用户环境确认。
