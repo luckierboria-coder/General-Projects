@@ -1,0 +1,2 @@
+playwright>=1.40
+imageio-ffmpeg>=0.5
