@@ -233,7 +233,10 @@ def find_browser(explicit):
 
 
 def fetch_rendered(url, browser, proxy, timeout, virtual_time):
-    with tempfile.TemporaryDirectory(prefix="chatgpt-share-") as profile:
+    # Chrome/Edge Crashpad may still hold CrashpadMetrics-active.pma open on Windows
+    # after the headless browser exits. A locked diagnostics file should not
+    # turn an otherwise successful chat export into a WinError 5.
+    with tempfile.TemporaryDirectory(prefix="chatgpt-share-", ignore_cleanup_errors=True) as profile:
         command = [
             browser, "--headless=new", "--disable-gpu", "--no-first-run",
             "--disable-extensions", "--disable-sync", "--disable-component-update",
