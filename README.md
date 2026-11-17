@@ -6,6 +6,7 @@
 
 | 项目 | 目的 | 技术栈 | 文档 | 构建 |
 | --- | --- | --- | --- | --- |
+| [Fleet Carrier Command](FleetCarrierCommand/) | Starfield 1.16.244 独立旗舰与护航舰 Mod（P0 技术验证） | Creation Kit / Papyrus / SFSE（拟用） | [项目 Agent 指南](FleetCarrierCommand/AGENTS.md) · [项目 README](FleetCarrierCommand/README.md) | 尚未编译；需在游戏中验证 |
 | [ChatGPT Share Archiver](ChatGPT-Share-Archiver/) | 读取公开 ChatGPT / Codex 分享链接并保存 XML | Python 3.12、标准库 HTTP 服务、HTML/JavaScript、PyInstaller | [项目 Agent 指南](ChatGPT-Share-Archiver/AGENTS.md) · [用户 README](ChatGPT-Share-Archiver/README.md) | [Windows Actions](.github/workflows/build-chatgpt-share-archiver.yml) |
 
 ## 对 AI Agent 的导航

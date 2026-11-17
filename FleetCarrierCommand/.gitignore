@@ -1,0 +1,26 @@
+# Local CK/SFSE toolchains and generated artifacts
+*.pex
+*.esm
+*.esp
+*.esl
+*.dll
+*.pdb
+*.obj
+*.ilk
+*.lib
+*.cache
+*.log
+*.dmp
+*.bak
+build/
+dist/
+out/
+.vs/
+.vscode/
+.idea/
+# Never commit user save data or executable patches
+*.sfs
+*.sav
+Starfield.exe
+sfse_loader.exe
+Data/

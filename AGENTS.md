@@ -10,6 +10,7 @@
 
 | 项目目录 | 项目简介 | 优先阅读 |
 | --- | --- | --- |
+| [`FleetCarrierCommand/`](FleetCarrierCommand/) | Starfield 舰队旗舰 Mod，P0 探针与 M0 设计 | [`FleetCarrierCommand/AGENTS.md`](FleetCarrierCommand/AGENTS.md) |
 | [`ChatGPT-Share-Archiver/`](ChatGPT-Share-Archiver/) | 公开 ChatGPT 传统分享页和 Codex `/s/cx_...` 快照的本地阅读、XML 归档工具 | [`ChatGPT-Share-Archiver/AGENTS.md`](ChatGPT-Share-Archiver/AGENTS.md) |
 
 项目用户文档在各自的 `README.md`。如仓库后续添加项目，更新上述表格及根目录 `README.md`。
