@@ -11,6 +11,7 @@
 | 项目目录 | 项目简介 | 优先阅读 |
 | --- | --- | --- |
 | [`ChatGPT-Share-Archiver/`](ChatGPT-Share-Archiver/) | 公开 ChatGPT 传统分享页和 Codex `/s/cx_...` 快照的本地阅读、XML 归档工具 | [`ChatGPT-Share-Archiver/AGENTS.md`](ChatGPT-Share-Archiver/AGENTS.md) |
+| [`Starfield-Transmog-Framework/`](Starfield-Transmog-Framework/) | Starfield 原生 Skin/OMOD 幻化系统分析与兼容扩展工程 | [`Starfield-Transmog-Framework/AGENTS.md`](Starfield-Transmog-Framework/AGENTS.md) |
 
 项目用户文档在各自的 `README.md`。如仓库后续添加项目，更新上述表格及根目录 `README.md`。
 

@@ -7,6 +7,7 @@
 | 项目 | 目的 | 技术栈 | 文档 | 构建 |
 | --- | --- | --- | --- | --- |
 | [ChatGPT Share Archiver](ChatGPT-Share-Archiver/) | 读取公开 ChatGPT / Codex 分享链接并保存 XML | Python 3.12、标准库 HTTP 服务、HTML/JavaScript、PyInstaller | [项目 Agent 指南](ChatGPT-Share-Archiver/AGENTS.md) · [用户 README](ChatGPT-Share-Archiver/README.md) | [Windows Actions](.github/workflows/build-chatgpt-share-archiver.yml) |
+| [Starfield Transmog Framework](Starfield-Transmog-Framework/) | 《星空》幻化系统的插件分析、兼容补丁及自动化构建研究（M0） | Python 3.12、SF1Edit、后续 Mutagen/Spriggit | [项目 Agent 指南](Starfield-Transmog-Framework/AGENTS.md) · [项目 README](Starfield-Transmog-Framework/README.md) | [静态检查 Actions](.github/workflows/test-starfield-transmog.yml) |
 
 ## 对 AI Agent 的导航
 

@@ -1,0 +1,30 @@
+name: Starfield Transmog static checks
+on:
+  push:
+    paths:
+      - "Starfield-Transmog-Framework/**"
+      - ".github/workflows/test-starfield-transmog.yml"
+  pull_request:
+    paths:
+      - "Starfield-Transmog-Framework/**"
+      - ".github/workflows/test-starfield-transmog.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Starfield-Transmog-Framework
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax check
+        run: python -m compileall -q tools tests
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Verify source inventory schema
+        run: python -c "import json; x=json.load(open('reference/source-structure.json')); assert x['record_count_total']==714; assert sum(x['record_counts'].values())==714; assert x['masters']==['Starfield.esm']"

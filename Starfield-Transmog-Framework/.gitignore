@@ -1,0 +1,22 @@
+# User/game/plugin binaries and licensed assets
+*.esm
+*.esp
+*.esl
+*.ba2
+*.zip
+*.7z
+*.rar
+*.nif
+*.mesh
+*.dds
+*.pex
+*.dll
+# Local dumps and caches
+out/
+private/
+artifacts/
+__pycache__/
+*.pyc
+.venv/
+.vscode/
+.DS_Store

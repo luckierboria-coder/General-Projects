@@ -1,0 +1,16 @@
+{
+  "sha256": "c55b5f4c840b52b2e4d04e5046751574b4b0e78ac0b50655dcec03fa7894470f",
+  "size_bytes": 618073,
+  "masters": [
+    "Starfield.esm"
+  ],
+  "record_counts": {
+    "ARMA": 305,
+    "ARMO": 136,
+    "COBJ": 136,
+    "OMOD": 136,
+    "TES4": 1
+  },
+  "record_count_total": 714,
+  "warning": "Read-only record inventory from user-supplied Transmog v1; not game compatibility evidence."
+}
