@@ -16,3 +16,13 @@
 
 ## CI
 `.github/workflows/test-starfield-transmog.yml` is at **repository root**. It runs Python syntax/unit checks only. There is no playable ESM artifact at this milestone.
+
+## M1 test with installed game data
+
+From \`Starfield-Transmog-Framework\`:
+
+~~~powershell
+py -3 tools/compat_audit.py "C:\MyMods\Transmog.zip" --current-master "D:\SteamLibrary\steamapps\common\Starfield\Data\Starfield.esm" --out out\current-master-diff.json
+~~~
+
+Do not commit \`out/\` reports or upload the installed master; the game data must remain on your PC. This audit only reports candidate differences. Review \`potentially_stale_armor_records\` in SF1Edit and confirm X-Tech, Skin, quality and legendary behavior in-game before writing a patch.

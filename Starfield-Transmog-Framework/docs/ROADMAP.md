@@ -4,7 +4,8 @@
 - [x] Inspect uploaded original Transmog 1.0.0 archive and record counts.
 - [x] Add independent read-only inspector and synthetic unit tests.
 - [x] Configure repository-root GitHub Actions for static checks.
-- [ ] Compare original overwritten records against user's currently installed Starfield masters in SF1Edit.
+- [x] Implement read-only source link audit and optional current-master ARMO difference scanner (synthetic tests pass). 
+- [ ] Run current-master scanner against a matching 2026 Starfield.esm (not available in CI) and verify in SF1Edit.
 
 ## M1 — Current-game compatibility (not started)
 - [ ] Identify exact source of Skin vs quality/X-Tech upgrade incompatibility.

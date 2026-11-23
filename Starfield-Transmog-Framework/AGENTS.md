@@ -24,3 +24,8 @@ python tools/esm_inspect.py /private/path/to/Transmog.zip
 - Treat DLC records and Zone79/VCO compatibility as work to verify, not as implemented features.
 - Prefer standalone compatibility plugins and explicit dependency checks.
 - Keep Python inspection scripts read-only. Update tests and documentation alongside changes.
+
+## M1 read-only audit
+- \`tools/compat_audit.py\` scans original xoxTransmog + optional installed Starfield.esm; does not edit the input or output a playable plugin.
+- \`tests/test_compat_audit.py\` verifies synthetic grouped records, model links, missing data, and field comparisons.
+- Any future automatic compatibility merge must be separately designed and tested. Never equate a different subrecord byte sequence with a confirmed X-Tech issue.
