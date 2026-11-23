@@ -20,3 +20,6 @@ __pycache__/
 .venv/
 .vscode/
 .DS_Store
+# C# toolchain build artifacts
+bin/
+obj/

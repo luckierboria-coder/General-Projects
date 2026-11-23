@@ -29,3 +29,10 @@ python tools/esm_inspect.py /private/path/to/Transmog.zip
 - \`tools/compat_audit.py\` scans original xoxTransmog + optional installed Starfield.esm; does not edit the input or output a playable plugin.
 - \`tests/test_compat_audit.py\` verifies synthetic grouped records, model links, missing data, and field comparisons.
 - Any future automatic compatibility merge must be separately designed and tested. Never equate a different subrecord byte sequence with a confirmed X-Tech issue.
+
+## Build toolchain (2026-11-23)
+- \`toolchain/BuildProbe\` uses BuildKit 0.4.2, transitively pins Mutagen 0.54.4. This C# toolchain code is GPL-3.0-only.
+- \`source/.spriggit\` pins the Starfield YAML translator version but contains no proprietary original mod records.
+- CI checks dependency loading only. Disposable \`--smoke\` needs a local licensed master and does not build the transmog mod.
+- Public 1.16.244 record-type tables do **not** supply the full 136 ARMO payloads. Do not claim a live 1.16.244 compatibility comparison without data.
+

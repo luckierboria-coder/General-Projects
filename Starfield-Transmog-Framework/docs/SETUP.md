@@ -26,3 +26,11 @@ py -3 tools/compat_audit.py "C:\MyMods\Transmog.zip" --current-master "D:\SteamL
 ~~~
 
 Do not commit \`out/\` reports or upload the installed master; the game data must remain on your PC. This audit only reports candidate differences. Review \`potentially_stale_armor_records\` in SF1Edit and confirm X-Tech, Skin, quality and legendary behavior in-game before writing a patch.
+
+## Optional .NET 9 toolchain
+
+Read \`docs/TOOLCHAIN.md\` for pinned dependency versions and compiler
+smoke-test instructions. This toolchain does not require your installed
+game files for CI dependency compilation, but a real serializer test or
+ARMO field comparison still requires licensed 1.16.244 game master data.
+

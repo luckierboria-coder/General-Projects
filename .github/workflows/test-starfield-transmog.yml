@@ -30,3 +30,21 @@ jobs:
         run: python tools/compat_audit.py --help
       - name: Verify source inventory schema
         run: python -c "import json; x=json.load(open('reference/source-structure.json')); assert x['record_count_total']==714; assert sum(x['record_counts'].values())==714; assert x['masters']==['Starfield.esm']"
+  compiler-toolchain:
+    name: Pinned Starfield build libraries (.NET 9)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Starfield-Transmog-Framework
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - name: Restore pinned BuildKit and Mutagen
+        run: dotnet restore toolchain/BuildProbe/BuildProbe.csproj
+      - name: Compile C# build probe
+        run: dotnet build toolchain/BuildProbe/BuildProbe.csproj -c Release --no-restore
+      - name: Check loaded library versions without game data
+        run: dotnet run --project toolchain/BuildProbe/BuildProbe.csproj -c Release --no-restore --no-build -- --check-deps
+

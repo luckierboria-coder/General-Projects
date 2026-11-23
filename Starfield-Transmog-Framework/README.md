@@ -65,3 +65,12 @@ py -3 tools/compat_audit.py "D:\Downloads\Transmog-10692-v1-0-0-1721772898.zip" 
 The inspector checks 136 overridden ARMO records for byte-level non-model field changes, verifies the added ARMA links and COBJ→OMOD targets, and produces a local JSON report. This is **not an ESM patcher**; a master-file difference alone is not proof of the X-Tech issue. Review candidate fields in SF1Edit before editing. The plugin ZIP, installed master and report remain local (not in GitHub).
 
 The user-supplied original contains **51 spacesuit, 44 helmet and 41 backpack overrides**, with 15,162 INDX/MODL model links (14,708 pointing at newly added local addons). No dangling local ARMA or OMOD recipe links were found.
+
+## Cloud build-toolchain bootstrap
+
+See [the pinned .NET 9 + BuildKit + Spriggit toolchain](docs/TOOLCHAIN.md).
+A C# build probe is under \`toolchain/BuildProbe/\`; CI compiles it but
+does **not** produce a real transmog ESM. A complete field-by-field comparison
+with Starfield 1.16.244 still needs the matching master records. The public
+1.16.244 record-type reference is aggregate metadata only.
+
