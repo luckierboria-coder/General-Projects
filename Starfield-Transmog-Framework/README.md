@@ -14,7 +14,7 @@ Open-source development tools for a **Starfield** equipment appearance system us
 
 ## Verified source inventory
 
-The user-provided **Transmog 1.0.0** archive contains only \`Data/xoxTransmog.esm\`; no DLL, Papyrus script or bundled mesh. A read-only inspection found:
+The user-provided **Transmog 1.0.0** archive contains only `Data/xoxTransmog.esm`; no DLL, Papyrus script or bundled mesh. A read-only inspection found:
 
 | Record | Count |
 |---|---:|
@@ -24,7 +24,7 @@ The user-provided **Transmog 1.0.0** archive contains only \`Data/xoxTransmog.es
 | COBJ | 136 |
 | TES4 | 1 |
 
-Only declared master: \`Starfield.esm\`. See [source-structure.json](reference/source-structure.json).
+Only declared master: `Starfield.esm`. See [source-structure.json](reference/source-structure.json).
 
 This demonstrates a pure-record architecture; it does **not** prove compatibility with current DLC/quality upgrades or arbitrary third-party clothes.
 
@@ -32,11 +32,11 @@ This demonstrates a pure-record architecture; it does **not** prove compatibilit
 
 Requirements: Python 3.12 or newer. All Bethesda and third-party binaries stay **outside this public repository**.
 
-\`\`\`powershell
+```powershell
 cd Starfield-Transmog-Framework
 py -3 -m unittest discover -s tests -v
 py -3 tools/esm_inspect.py "D:\Mods\Transmog-10692-v1-0-0-1721772898.zip" --out out\source-inspection.json
-\`\`\`
+```
 
 Read [setup](docs/SETUP.md), [architecture](docs/DESIGN.md) and [milestones](docs/ROADMAP.md).
 

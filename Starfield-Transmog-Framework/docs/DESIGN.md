@@ -1,6 +1,6 @@
 # Architecture decisions (M0)
 
-- Input example: user-provided Transmog v1 (single \`xoxTransmog.esm\`; static ARMO/ARMA/OMOD/COBJ records).
+- Input example: user-provided Transmog v1 (single `xoxTransmog.esm`; static ARMO/ARMA/OMOD/COBJ records).
 - Objective: appearance-only change, preserving all equipped item statistics, legendary mods and post-2024 quality/X-Tech systems.
 - Prefer original standalone compatibility plugin; do not silently replace or redistribute original author's ESM.
 - Core data relationships: source item ARMO, displayed addon/model ARMA, skin OMOD, workbench COBJ and any material variants.
